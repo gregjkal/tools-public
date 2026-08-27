@@ -56,6 +56,7 @@ TOP_LEVEL=(
   tools/code/boost-review.md
   tools/code/code-cleanup.md
   tools/code/code-review.md
+  tools/code/docent.md
   tools/code/lib-review.md
   tools-wg21/advocatus.md
   tools-wg21/auditor.md

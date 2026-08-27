@@ -238,6 +238,10 @@ Takes source code and delivers a numbered repair list where each entry is a two-
 _[tools/code/code-review.md](tools/code/code-review.md)_\
 Transforms source files into a challenge-hardened review report with findings sorted by must-fix, should-fix, and nice-to-have.
 
+**The Docent**\
+_[tools/code/docent.md](tools/code/docent.md)_\
+Turns a changeset into anchored one-sentence claims about how each feature is implemented, so reviewers judge the claims instead of reading the diff.
+
 **The Reviewer**\
 _[tools/code/lib-review.md](tools/code/lib-review.md)_\
 Writes a quality-verdicted design diagnosis from an open-source project's source code, domain context, and competitive landscape.
