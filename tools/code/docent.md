@@ -46,7 +46,7 @@ Create one scratch directory for the run and name every file in it; pass full pa
 
 Resolve the input to a changeset, first match wins:
 
-1. A PR number or URL: fetch the PR head with `git fetch origin pull/<n>/head`, diff it from its merge-base with the PR's base branch, and capture the PR title and description with `gh pr view`.
+1. A PR number or URL: pick the remote whose URL matches the PR's repository (add one when none does), fetch the PR head with `git fetch <that remote> pull/<n>/head`, diff it from its merge-base with the PR's base branch, and capture the PR title and description with `gh pr view`.
 2. A branch name: diff from the merge-base with the default branch.
 3. A commit or commit range: `git diff` over it.
 4. Nothing given and the working tree is dirty: the working tree diff.
