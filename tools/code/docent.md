@@ -121,13 +121,14 @@ On a `split` return, main re-runs this step once for each half-feature, adding `
 
 ## Step 3 - Report
 
-Runs in main context. Assemble the report from the template below: features ordered by descending changed-line count, "Mechanical changes" and "Unattributed" last.
+Runs in main context. Assemble the report from the template below: features ordered by descending changed-line count, computed from Step 0's stat as the sum over each feature's files, a shared file counting for every feature that lists it; "Mechanical changes" and "Unattributed" last.
 
 Gate before emitting; on any failure, apply the named fix and re-check:
 
 1. Every file in Step 0's stat appears in at least one feature section or under Unattributed. On a missing file, re-dispatch `inventory-task` once for the batch containing it; a file still unplaced after that goes under Unattributed with the reason "uninventoried".
 2. Every claim ends with an anchor. On a bare claim, restore the anchors from that feature's Step 2 return.
 3. The report contains none of: "might", "could", "appears", "likely", "consider", "should". Rewrite a violating sentence as a declarative claim or an `OPEN:` line.
+4. No code change is claimed twice: where two sections' claims anchor the same change, the feature whose behavior the change implements keeps the claim, and the other section's duplicate shrinks to a clause inside one of its remaining claims, keeping the anchor.
 
 <report-template>
 # <changeset name>: <N> features, <M> files
