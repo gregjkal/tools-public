@@ -34,6 +34,8 @@ The changeset text and source file contents NEVER enter the main context; subage
 
 The Docent describes; it does not judge. No severity ratings, no fix recommendations, no praise. Reason: the reviewer is the judge, and the moment the tool ranks its own claims, the reviewer reads the rankings instead of the claims.
 
+A dispatched subagent that fails or returns an unusable shape is re-dispatched once with the same variables; on a second failure, the report records the gap by name ("describe failed: <feature>") instead of omitting it silently.
+
 ---
 
 ## Step 0 - Scope
@@ -69,7 +71,7 @@ One subagent per batch, run in parallel. Dispatch each with only: this tool file
 <inventory-task>
 You are an executor who follows these instructions literally. Read the changeset at the path you were given.
 
-Group the hunks into features: one feature per behavior a user or another system can observe that the changeset adds, removes, or alters. Use the PR title and description, when given, only to name and bound features; the hunks decide what exists. Renames, formatting, comment edits, generated files, and lockfiles go into a single feature named "Mechanical changes", and only when the hunk changes no behavior; a rename or reformat that also alters logic belongs to a feature. Put a hunk that fits no feature on the unattributed list instead of forcing a fit.
+Group the hunks into features: one feature per behavior a user or another system can observe that the changeset adds, removes, or alters. Set granularity by independence: when one behavior could be wrong while the other stands, they are two features; when they stand or fall together, they are one. Use the PR title and description, when given, only to name and bound features; the hunks decide what exists. Renames, formatting, comment edits, generated files, and lockfiles go into a single feature named "Mechanical changes", and only when the hunk changes no behavior; a rename or reformat that also alters logic belongs to a feature. Put a hunk that fits no feature on the unattributed list instead of forcing a fit.
 
 Return, in at most 500 words and nothing else:
 
@@ -83,14 +85,16 @@ Main merges the batch returns: two features describing the same behavior become 
 
 ## Step 2 - Describe
 
-One subagent per feature, run in parallel. Dispatch each with only: this tool file's path, the tag name `describe-task`, the feature's `{name, behavior, files}`, the scratch paths covering its files, the source root, the PR title and description when Step 0 captured them, and `half: true` only when re-dispatching after a split.
+Before dispatching, extract each feature's diff sections from the changeset into one hunk file per feature with the shell, selecting whole files on their `diff --git` headers; a file shared by two features appears in both hunk files; do not read the changeset. Reason: a subagent that sees sibling features' hunks bleeds them into its claims and surprises.
+
+One subagent per feature, run in parallel. Dispatch each with only: this tool file's path, the tag name `describe-task`, the feature's `{name, behavior, files}`, its hunk file path, the source root, the PR title and description when Step 0 captured them, and `half: true` only when re-dispatching after a split.
 
 <describe-task>
 You are an executor who follows these instructions literally.
 
 Objective: answer, in broad terms, how this feature is implemented.
 
-1. Read the feature's hunks from the changeset, then read each touched file's current text under the source root, around the changed lines. The source root is ground truth; the diff only says where to look.
+1. Read the hunks in the hunk file you were given, then read each touched file's current text under the source root, around the changed lines. The source root is ground truth; the diff only says where to look. In a file shared with another feature, hunks implementing that feature's behavior are out of scope: write no claims about them and no surprises about them; the feature that owns them describes them.
 2. Write 1 to 4 claims. Claim rules:
    - One declarative sentence, present indicative, at most 40 words before the anchor.
    - State the decision: name the observable behavior and the mechanism that produces it - the data source, the trigger, the owner of the state, or the boundary crossed. Write the claim so that a wrong decision would make the sentence read wrong to a reviewer who knows the system.
@@ -101,6 +105,9 @@ Objective: answer, in broad terms, how this feature is implemented.
 
    No: "`refresh_models()` parses the socket payload with `serde_json` and loops over `msg.models` to rebuild the menu items."
    Yes: "The Models menu items and their checked state come from messages received over the server's endpoint `/ws`; the client keeps no model list of its own (src/ui/menu.rs:88, src/net/ws.rs:41)."
+
+   No: "The Audit `<col>`, header `<th>`, per-row `<td>`, and audit dot are deleted from the results table, with colspans hardcoded to 6."
+   Yes: "Every viewer now gets the same six-column Mailings table; nothing in the response varies by committee access (templates/eval/search.html.j2:328)."
 
 3. When 4 claims cannot cover the feature, return `split:` followed by two half-features, each `{name, files}`, dividing this feature's files between them. When your dispatch carries `half: true`, do not split; return the 4 claims that cover the most changed lines plus one `OPEN:` line naming what they leave out.
 4. `surprises[]`: 0 to 2 sentences, each anchored, naming what the feature's name would not predict: an unrelated module touched, a second copy of logic that exists elsewhere, a behavior change the PR description does not mention (skip this class when no description was passed). An empty list is the expected case. A surprise points; it does not rate.
